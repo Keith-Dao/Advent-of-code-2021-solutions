@@ -101,6 +101,7 @@ if __name__ == "__main__":
             for board in boards
         ],
     )
+    print("---")
     part2(
         numbers,
         num_map,
