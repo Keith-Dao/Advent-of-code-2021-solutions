@@ -1,6 +1,6 @@
-from functools import reduce
-
 filename: str = "day8.txt"
+
+from functools import reduce
 
 digits: list[str] = [
     "abcefg",
