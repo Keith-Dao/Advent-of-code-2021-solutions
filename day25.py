@@ -1,63 +1,36 @@
 filename: str = "day25.txt"
 
+import numpy as np
+
 
 class Trench:
     def __init__(self) -> None:
-        self.east_facing: set[tuple[int, int]] = set()
-        self.south_facing: set[tuple[int, int]] = set()
-        self.rows: int = 0
-        self.columns: int = 0
-        self.stopped: bool = False
+        self.moving: list[np.bool_] = [np.True_, np.True_]
 
         with open(filename, "r") as text:
-            for y, line in enumerate(text):
-                self.columns = len(line.strip())
-                self.rows += 1
-                for x, c in enumerate(line):
-                    if c == ">":
-                        self.east_facing.add((x, y))
-                    elif c == "v":
-                        self.south_facing.add((x, y))
+            self.map: np.ndarray = np.array(
+                list(map(list, text.read().strip().split()))
+            )
 
     def step(self) -> None:
-        if self.stopped:
-            return
-
-        # Step east facing first
-        next_east: set[tuple[int, int]] = set()
-        for x, y in self.east_facing:
-            new_coord: tuple[int, int] = (x + 1) % self.columns, y
-            if new_coord in self.south_facing or new_coord in self.east_facing:
-                next_east.add((x, y))
-            else:
-                next_east.add(new_coord)
-
-        # Step south facing first
-        next_south: set[tuple[int, int]] = set()
-        for x, y in self.south_facing:
-            new_coord: tuple[int, int] = x, (y + 1) % self.rows
-            if new_coord in self.south_facing or new_coord in next_east:
-                next_south.add((x, y))
-            else:
-                next_south.add(new_coord)
-
-        if self.east_facing == next_east and self.south_facing == next_south:
-            self.stopped = True
-        self.east_facing, self.south_facing = next_east, next_south
+        for cucumber_type, axis in ((">", 1), ("v", 0)):
+            can_move = (np.roll(self.map, -1, axis) == ".") & (
+                self.map == cucumber_type
+            )  # Find the cucumbers that can move
+            self.moving[axis] = np.any(
+                can_move
+            )  # Check if any cucumbers can move
+            self.map[
+                can_move
+            ] = "."  # Empty the spaces where the cucumber moved
+            self.map[np.roll(can_move, 1, axis)] = cucumber_type
 
     def is_moving(self) -> bool:
-        return not self.stopped
+        return any(self.moving)
 
     def print(self):
-        for i in range(self.rows):
-            for j in range(self.columns):
-                if (j, i) in self.east_facing:
-                    print(">", end="")
-                elif (j, i) in self.south_facing:
-                    print("v", end="")
-                else:
-                    print(".", end="")
-            print()
+        for line in self.map:
+            print("".join(line))
 
 
 def part1():
